@@ -38,7 +38,7 @@ jobs:
         zip -r SystemGuard.zip SystemGuard.app
         
     - name: Upload to Google Drive 🚀
-      uses: adityak74/google-drive-upload-git-action@v1.0.9
+      uses: adityak74/google-drive-upload-git-action@v1  # <--- התיקון כאן
       with:
         # הקבצים שהוסתרנו בשלב הקודם
         credentials: ${{ secrets.GDRIVE_CREDENTIALS_B64 }}
