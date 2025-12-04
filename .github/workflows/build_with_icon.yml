@@ -30,16 +30,30 @@ jobs:
       run: |
         # הפקודה כוללת עכשיו את דגל האייקון
         pyinstaller --onefile --windowed --icon="3.icns" --name "SystemGuard" Install_Videonet_Block.py
+# ... (שלב 4 הסתיים, הקובץ SystemGuard.app נוצר) ...
 
-    # 5. דחיסת האפליקציה ל-ZIP (כדי לשמור על הרשאות והאייקון)
-    - name: Zip the App
+    - name: Zip the App for Upload
       run: |
         cd dist
         zip -r SystemGuard.zip SystemGuard.app
-
-    # 6. העלאת הקובץ המוכן להורדה
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+        
+    - name: Upload to Google Drive 🚀
+      uses: adityak74/google-drive-upload-git-action@v1.0.9
       with:
-        name: Videonet_Block
-        path: dist/SystemGuard.zip
+        # הקבצים שהוסתרנו בשלב הקודם
+        credentials: ${{ secrets.GDRIVE_CREDENTIALS_B64 }}
+        
+        # הנתיב לקובץ שרוצים להעלות
+        upload-to: SystemGuard/
+        
+        # הקובץ שאנו מעוניינים להעלות
+        file-path: dist/SystemGuard.zip
+        
+        # מאפשר לדרוס קובץ ישן (חשוב!)
+        overwrite: true
+        
+        # יוצר תיקייה בשם Build_${{ github.run_number }} בתוך הדרייב
+        create-folder: true
+        
+        # מעלה את ה-ZIP לתיקיית היעד.
+        # התיקייה תהיה בתוך התיקייה ששיתפת עם חשבון השירות (בשלב 1).
