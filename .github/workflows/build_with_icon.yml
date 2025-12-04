@@ -31,29 +31,27 @@ jobs:
         # הפקודה כוללת עכשיו את דגל האייקון
         pyinstaller --onefile --windowed --icon="3.icns" --name "SystemGuard" Install_Videonet_Block.py
 # ... (שלב 4 הסתיים, הקובץ SystemGuard.app נוצר) ...
-
-    - name: Zip the App for Upload
+# --- החלף את שלב ההעלאה הישן (השבור) בקוד הבא ---
+    
+    - name: Upload to Google Drive via Rclone 🚀
+      env:
+        # מגדירים ל-Rclone כונן וירטואלי בשם 'gdrive'
+        RCLONE_CONFIG_GDRIVE_TYPE: drive
+        RCLONE_CONFIG_GDRIVE_SCOPE: drive
+        # כאן אנחנו משתמשים בסוד שלך
+        GDRIVE_SA_BASE64: ${{ secrets.GDRIVE_CREDENTIALS_B64 }}
       run: |
-        cd dist
-        zip -r SystemGuard.zip SystemGuard.app
-        
-    - name: Upload to Google Drive 🚀
-      uses: adityak74/google-drive-upload-git-action@v1  # <--- התיקון כאן
-      with:
-        # הקבצים שהוסתרנו בשלב הקודם
-        credentials: ${{ secrets.GDRIVE_CREDENTIALS_B64 }}
-        
-        # הנתיב לקובץ שרוצים להעלות
-        upload-to: SystemGuard/
-        
-        # הקובץ שאנו מעוניינים להעלות
-        file-path: dist/SystemGuard.zip
-        
-        # מאפשר לדרוס קובץ ישן (חשוב!)
-        overwrite: true
-        
-        # יוצר תיקייה בשם Build_${{ github.run_number }} בתוך הדרייב
-        create-folder: true
-        
-        # מעלה את ה-ZIP לתיקיית היעד.
-        # התיקייה תהיה בתוך התיקייה ששיתפת עם חשבון השירות (בשלב 1).
+        # 1. התקנת Rclone (כלי מהיר להעברת קבצים)
+        brew install rclone
+
+        # 2. פענוח הסוד מקודד ה-Base64 חזרה לקובץ JSON
+        echo "$GDRIVE_SA_BASE64" | base64 --decode > service_account.json
+
+        # 3. הגדרת הנתיב לקובץ ה-JSON עבור Rclone
+        export RCLONE_CONFIG_GDRIVE_SERVICE_ACCOUNT_FILE=$(pwd)/service_account.json
+
+        # 4. ביצוע ההעלאה
+        # הפקודה מעתיקה את ה-ZIP לתוך תיקייה בשם SystemGuard בדרייב שלך
+        rclone copy dist/SystemGuard.zip gdrive:SystemGuard/ --progress
+
+        echo "✅ Upload finished successfully!"
